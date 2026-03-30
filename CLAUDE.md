@@ -2,8 +2,8 @@
 
 ## Status
 - **Current phase:** Phase 1 — Foundations & Simulation (Days 1–7)
-- **Current day:** Day 1
-- **Last updated:** Not yet started
+- **Current day:** Day 2
+- **Last updated:** 2026-03-28
 
 ## System
 Duffing oscillator: `x'' + γx' + αx + βx³ = F cos(ωt)`
@@ -31,17 +31,11 @@ docs/plan.md   → full 30-day plan
 ```
 
 ## What's been built
-Nothing yet — Day 1 is theory/handwritten notes.
-
-## Today's tasks (Day 1: Maths Review — ODEs and SHM)
-- [ ] Revise second-order ODEs: convert x'' + γx' + αx = 0 into first-order system
-- [ ] Work through exact solution for undamped case (β = 0, γ = 0): x(t) = A cos(ω₀t + φ)
-- [ ] Derive damped solution categories: underdamped, critically damped, overdamped
-- [ ] Sketch phase portraits (x vs v) for each regime by hand
-- **Deliverable:** handwritten notes covering the ODE theory
+- `src/simulator.py` — duffing ODE, euler_step, RK4, simulate functions, analytical solution, energy calculation
 
 ## Key decisions
-- (none yet)
+- dt = 0.063 (0.01 × T for α=1). RK4 energy error ~0.005% — well under 0.1% target.
 
 ## Session log
-- Day 1 completed
+- Day 1 completed — handwritten ODE notes
+- Day 2 completed — simulator built, Euler vs RK4 vs analytical compared. Phase portrait and energy drift plots done.
