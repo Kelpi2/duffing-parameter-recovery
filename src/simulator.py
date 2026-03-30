@@ -2,7 +2,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-params = {"gamma":0.3,"alpha":-1,"beta":1,"F":0.3,"omega":1}
+params = {"gamma":0.2,"alpha":1,"beta":0,"F":0.5,"omega":0}
+
+easy_params = {"gamma":0.2,"alpha":1,"beta":0,"F":0.2,"omega":1}
+mediums_params = {"gamma":0.2,"alpha":0.8,"beta":0.4,"F":0.6,"omega":0.28}
+hard_params = {"gamma":0.2,"alpha":-1,"beta":1.5,"F":0.5,"omega":0.4}
 
 def duffing(t, state, gamma,alpha,beta,F,omega):
     FO1 = state[1]
@@ -27,7 +31,7 @@ def simulateRK4(TotTime,timestep,params,state):
     states[0] = state
     for index in range(1,len(time)):
         states[index] = RK4(states[index-1],time[index-1],timestep,params)
-    energy = 0.5*states[:,1]**2 + 0.5*states[:,0]**2
+    energy = (0.5*states[:,1]**2) + (0.5*params["alpha"]*states[:,0]**2)+(0.25*params["beta"]*states[:,0]**4)
     return states,energy
 
 def simulateEuler(TotTime,timestep,params,state):
@@ -79,7 +83,34 @@ def anSolution(steps,timestep,state,alpha):
     energy = 0.5*(v**2) +0.5*alpha*(x**2)
     return np.column_stack((x,v)),energy
 
-compare(1000,0.063,[1,0])
+
+def PlotRK4(steps,timestep,params,state):
+    RK4graph,__ = simulateRK4(steps,timestep,params,state)
+    plt.title("Phase Portrait")
+    plt.plot(RK4graph[:,0],RK4graph[:,1])
+    plt.xlim(-2,2)
+    plt.ylim(-2,2)
+    plt.show()
+
+def omegaSweep(steps,timestep,params,state):
+    omegas = np.arange(0.5,2,0.05)
+    maxD = []
+    for i in omegas:
+        params["omega"] = i
+        RK4graph,__ = simulateRK4(steps,timestep,params,state)
+        maxD.append(np.max(np.abs(RK4graph[:,0])))
+    plt.figure()
+    plt.title("x VS omega")
+    plt.plot(omegas,maxD)
+    plt.axvline(x=np.sqrt(params["alpha"]),label = "natural freq")
+    plt.show()
+    print(np.max(maxD))
+
+#omegaSweep(1000,0.063,params,[1,0])
+
+PlotRK4(1000,0.063,hard_params,[1,0])
+
+
     
 
 
