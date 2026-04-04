@@ -2,10 +2,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-params = {"gamma":0.2,"alpha":1,"beta":0,"F":0.5,"omega":0}
 
 easy_params = {"gamma":0.2,"alpha":1,"beta":0,"F":0.2,"omega":1}
-mediums_params = {"gamma":0.2,"alpha":0.8,"beta":0.4,"F":0.6,"omega":0.28}
+medium_params = {"gamma":0.2,"alpha":0.8,"beta":0.4,"F":0.6,"omega":0.28}
 hard_params = {"gamma":0.2,"alpha":-1,"beta":1.5,"F":0.5,"omega":0.4}
 
 def duffing(t, state, gamma,alpha,beta,F,omega):
@@ -44,7 +43,7 @@ def simulateEuler(TotTime,timestep,params,state):
     return states,energy
 
 
-def compare(steps,timestep,startingState):
+def compare(steps,timestep,startingState,params):
     RK4state,RK4energy = simulateRK4(steps,timestep,params,startingState)
     EulerState,EulerEnergy = simulateEuler(steps,timestep,params,startingState)
     TrueState,TrueEnergy = anSolution(steps,timestep,startingState,params["alpha"])
@@ -106,10 +105,11 @@ def omegaSweep(steps,timestep,params,state):
     plt.show()
     print(np.max(maxD))
 
-#omegaSweep(1000,0.063,params,[1,0])
 
-PlotRK4(1000,0.063,hard_params,[1,0])
 
+PlotRK4(1000,0.063,easy_params,[1,0])
+
+omegaSweep(1000,0.063,easy_params,[1,0])
 
     
 
