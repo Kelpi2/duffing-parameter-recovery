@@ -107,9 +107,9 @@ def omegaSweep(steps,timestep,params,state):
 
 
 
-PlotRK4(1000,0.063,easy_params,[1,0])
+#PlotRK4(1000,0.063,easy_params,[1,0])
 
-omegaSweep(1000,0.063,easy_params,[1,0])
+#omegaSweep(1000,0.063,easy_params,[1,0])
 
     
 

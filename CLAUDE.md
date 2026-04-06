@@ -2,8 +2,8 @@
 
 ## Status
 - **Current phase:** Phase 1 — Foundations & Simulation (Days 1–7)
-- **Current day:** Day 3
-- **Last updated:** 2026-03-31
+- **Current day:** Day 4
+- **Last updated:** 2026-04-06
 
 ## System
 Duffing oscillator: `x'' + γx' + αx + βx³ = F cos(ωt)`
@@ -40,3 +40,4 @@ docs/plan.md   → full 30-day plan
 - Day 1 completed — handwritten ODE notes
 - Day 2 completed — simulator built, Euler vs RK4 vs analytical compared. Phase portrait and energy drift plots done.
 - Day 3 completed — energy conservation validated, phase portraits for β sweep, omega sweep with resonance peak, chaos confirmed. Easy/medium/hard parameter configs defined.
+- Day 4 completed — Gaussian noise model, SNR control, datasets saved as .npz for SNR 100/10/5/2/1, FDV velocity estimation, noisy vs clean phase portrait visualisation.
