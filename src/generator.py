@@ -1,34 +1,36 @@
-from simulator import simulateRK4,easy_params,medium_params,hard_params
+from simulator import simulateRK4,easy_params,medium_params,hard_params,linear_params
 import numpy as np
 import matplotlib.pyplot as plt
 from numpy import random
 
 
-def addNoise(displacement,SD):
+def addNoise(displacement,SD): #Guassian noise
     noise = np.random.normal(size = (len(displacement)), loc = 0,scale = SD)
-    return displacement+noise
+    return displacement + noise
 
-def generateDataset(TotTime,timestep,params,state):
+def generateDataset(TotTime,timestep,params,state): #Generates and saves data,clean + noisy
     SNR = [100,10,5,2,1]
+    states,__ = simulateRK4(TotTime,timestep,params,state)
     for i in SNR:
-        states,__ = simulateRK4(TotTime,timestep,params,state)
         noisyDis = addNoise(states[:,0],np.std(states[:,0])/i)
         noisyVel = FDV(noisyDis,timestep)
         noisyDis = noisyDis[1:-1]
-        np.savez(f"C:\VS-Code Main\duffing-parameter-recovery\data\dataset_SNR{i}", CleanStates = states,NoisyDis = noisyDis,NoisyVel = noisyVel)
+        #np.savez(f"C:\VS-Code Main\duffing-parameter-recovery\data\dataset_SNR{i}", CleanStates = states,NoisyDis = noisyDis,NoisyVel = noisyVel) #desktop
+        np.savez(f"C:\VS-Code\duffing-parameter-recovery\data\dataset_SNR{i}", CleanStates = states,NoisyDis = noisyDis,NoisyVel = noisyVel,timestep = timestep) #laptop
 
-def FDV(displacement,timestep):
+def FDV(displacement,timestep): #finite difference velocity
     estimatedVel = (displacement[2:]-displacement[:-2])/(2*timestep)
     return estimatedVel
 
-def compare(TotTime,timestep,params,state):
+def compare(TotTime,timestep,params,state): #compares 4 levels of SNR - Ignore
     generateDataset(TotTime,timestep,params,state)
     dis = []
     vel = []
     clean = 0
     SNR = [100,10,5,2,1]
     for i in SNR:
-        data = np.load(f"C:\VS-Code Main\duffing-parameter-recovery\data\dataset_SNR{i}.npz")
+        #data = np.load(f"C:\VS-Code Main\duffing-parameter-recovery\data\dataset_SNR{i}.npz") #dekstop
+        data = np.load(f"C:\VS-Code\duffing-parameter-recovery\data\dataset_SNR{i}.npz") #laptop
         dis.append(data["NoisyDis"])
         vel.append(data["NoisyVel"])
         clean = data["CleanStates"]
@@ -43,5 +45,5 @@ def compare(TotTime,timestep,params,state):
     axs[1,1].set_title("SNR:1")
     plt.show()
 
-compare(1000,0.063,easy_params,[1,0])
-
+#compare(1000,0.063,linear_params,[1,0])
+generateDataset(100,0.063,linear_params,[1,0])

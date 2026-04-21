@@ -2,21 +2,22 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-
+#parameters
+linear_params = {"gamma":0.2,"alpha":1,"beta":0,"F":0,"omega":1}
 easy_params = {"gamma":0.2,"alpha":1,"beta":0,"F":0.2,"omega":1}
 medium_params = {"gamma":0.2,"alpha":0.8,"beta":0.4,"F":0.6,"omega":0.28}
 hard_params = {"gamma":0.2,"alpha":-1,"beta":1.5,"F":0.5,"omega":0.4}
 
-def duffing(t, state, gamma,alpha,beta,F,omega):
+def duffing(t, state, gamma,alpha,beta,F,omega):      #2 1st order equations
     FO1 = state[1]
     FO2 = F*np.cos(omega*t) - (gamma*FO1 + alpha*state[0]+beta*state[0]**3)
     state = np.array([FO1,FO2])
     return state
 
-def eulerStep(state,t,timestep,params):
+def eulerStep(state,t,timestep,params):  #ForwardEuler-Ignore
     return state + timestep*duffing(t,state,**params)
     
-def RK4(state,t, timestep,params):
+def RK4(state,t, timestep,params):     #RK4 steps simulator-unpacks already
     k1 = duffing(t,state,**params)
     k2 = duffing(t+timestep/2,state + k1*timestep/2,**params)
     k3 = duffing(t+timestep/2,state + k2*timestep/2,**params)
@@ -24,7 +25,7 @@ def RK4(state,t, timestep,params):
     return state + (timestep/6)*(k1+2*k2+2*k3+k4)
 
 
-def simulateRK4(TotTime,timestep,params,state):
+def simulateRK4(TotTime,timestep,params,state):  #Runs rk4, saves states and energy
     time = np.arange(0,TotTime,timestep)
     states = np.zeros((len(time),2))
     states[0] = state
@@ -33,7 +34,7 @@ def simulateRK4(TotTime,timestep,params,state):
     energy = (0.5*states[:,1]**2) + (0.5*params["alpha"]*states[:,0]**2)+(0.25*params["beta"]*states[:,0]**4)
     return states,energy
 
-def simulateEuler(TotTime,timestep,params,state):
+def simulateEuler(TotTime,timestep,params,state): #Runs ForwardEuler - Ignore
     time = np.arange(0,TotTime,timestep)
     states = np.zeros((len(time),2))
     states[0] = state
@@ -43,7 +44,7 @@ def simulateEuler(TotTime,timestep,params,state):
     return states,energy
 
 
-def compare(steps,timestep,startingState,params):
+def compare(steps,timestep,startingState,params):  #compares error between truth and two simulators - Ignore
     RK4state,RK4energy = simulateRK4(steps,timestep,params,startingState)
     EulerState,EulerEnergy = simulateEuler(steps,timestep,params,startingState)
     TrueState,TrueEnergy = anSolution(steps,timestep,startingState,params["alpha"])
@@ -70,7 +71,7 @@ def compare(steps,timestep,startingState,params):
     plt.legend()
     plt.show()
 
-def anSolution(steps,timestep,state,alpha):
+def anSolution(steps,timestep,state,alpha): #True analytical solution for comparison
     time = np.arange(0,steps,timestep)
     x = state[0]
     v = state[1]
@@ -83,7 +84,7 @@ def anSolution(steps,timestep,state,alpha):
     return np.column_stack((x,v)),energy
 
 
-def PlotRK4(steps,timestep,params,state):
+def PlotRK4(steps,timestep,params,state):  #Plots generated points
     RK4graph,__ = simulateRK4(steps,timestep,params,state)
     plt.title("Phase Portrait")
     plt.plot(RK4graph[:,0],RK4graph[:,1])
@@ -91,7 +92,7 @@ def PlotRK4(steps,timestep,params,state):
     plt.ylim(-2,2)
     plt.show()
 
-def omegaSweep(steps,timestep,params,state):
+def omegaSweep(steps,timestep,params,state): #Sweeps for best omega value based on amplitude
     omegas = np.arange(0.5,2,0.05)
     maxD = []
     for i in omegas:
@@ -107,7 +108,7 @@ def omegaSweep(steps,timestep,params,state):
 
 
 
-#PlotRK4(1000,0.063,easy_params,[1,0])
+#PlotRK4(1000,0.063,hard_params,[1,0])
 
 #omegaSweep(1000,0.063,easy_params,[1,0])
 
