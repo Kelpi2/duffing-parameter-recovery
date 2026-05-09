@@ -46,4 +46,4 @@ def compare(TotTime,timestep,params,state): #compares 4 levels of SNR - Ignore
     plt.show()
 
 #compare(1000,0.063,linear_params,[1,0])
-generateDataset(100,0.063,linear_params,[1,0])
+generateDataset(50,0.063,linear_params,[1,0])
