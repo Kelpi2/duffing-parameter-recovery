@@ -2,6 +2,8 @@ from simulator import simulateRK4,easy_params,medium_params,hard_params,linear_p
 import numpy as np
 import matplotlib.pyplot as plt
 from numpy import random
+import os
+DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data")
 
 
 def addNoise(displacement,SD): #Guassian noise
@@ -15,8 +17,7 @@ def generateDataset(TotTime,timestep,params,state): #Generates and saves data,cl
         noisyDis = addNoise(states[:,0],np.std(states[:,0])/i)
         noisyVel = FDV(noisyDis,timestep)
         noisyDis = noisyDis[1:-1]
-        #np.savez(f"C:\VS-Code Main\duffing-parameter-recovery\data\dataset_SNR{i}", CleanStates = states,NoisyDis = noisyDis,NoisyVel = noisyVel) #desktop
-        np.savez(f"C:\VS-Code\duffing-parameter-recovery\data\dataset_SNR{i}", CleanStates = states,NoisyDis = noisyDis,NoisyVel = noisyVel,timestep = timestep) #laptop
+        np.savez(os.path.join(DATA_DIR, f"dataset_SNR{i}"), CleanStates = states,NoisyDis = noisyDis,NoisyVel = noisyVel,timestep = timestep)
 
 def FDV(displacement,timestep): #finite difference velocity
     estimatedVel = (displacement[2:]-displacement[:-2])/(2*timestep)
@@ -29,8 +30,7 @@ def compare(TotTime,timestep,params,state): #compares 4 levels of SNR - Ignore
     clean = 0
     SNR = [100,10,5,2,1]
     for i in SNR:
-        #data = np.load(f"C:\VS-Code Main\duffing-parameter-recovery\data\dataset_SNR{i}.npz") #dekstop
-        data = np.load(f"C:\VS-Code\duffing-parameter-recovery\data\dataset_SNR{i}.npz") #laptop
+        data = np.load(os.path.join(DATA_DIR, f"dataset_SNR{i}.npz"))
         dis.append(data["NoisyDis"])
         vel.append(data["NoisyVel"])
         clean = data["CleanStates"]
@@ -45,5 +45,6 @@ def compare(TotTime,timestep,params,state): #compares 4 levels of SNR - Ignore
     axs[1,1].set_title("SNR:1")
     plt.show()
 
-#compare(1000,0.063,linear_params,[1,0])
-generateDataset(50,0.063,linear_params,[1,0])
+if __name__ == "__main__":
+    #compare(1000,0.063,linear_params,[1,0])
+    generateDataset(50,0.063,linear_params,[1,0])
