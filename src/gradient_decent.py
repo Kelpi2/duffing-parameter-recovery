@@ -22,6 +22,7 @@ def grad(states,predicted,estimAccel,L2):
     return (states.T@(states@predicted-estimAccel))/(len(states)/2)+L2*2*predicted
 
 def gradient_descent(params,epochs,lr,graphs,L2):
+    true = np.array([params["alpha"],params["gamma"]])
     #-------------graphing
     lossCurve =[]
     alphaCurve = []
@@ -45,7 +46,7 @@ def gradient_descent(params,epochs,lr,graphs,L2):
             pred = pred-lr*grad(states_normal,pred,estimAccel,L2)
             alphaCurve.append(pred[0]/std[0])
             gammaCurve.append(pred[1]/std[1])
-        print(f"The loss for SNR of {i} is {loss(states,pred/std,estimAccel)} with the values of {(pred/std)*-1}")
+        print(f"The loss for SNR of {i} is {np.abs((true-(pred/std)*-1)/true)*100}% with the values of {(pred/std)*-1}")
         lr = startLr
         pred = np.random.randn(2,)*np.sqrt(2)
         #graphing-------------
