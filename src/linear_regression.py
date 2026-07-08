@@ -32,8 +32,8 @@ def linearReg(params,study):
             studyA.append(alpha)
             studyG.append(gamma)
         else:
-            print(f"""For an SNR of {i} the calculated value of Alpha is {alpha:.2f} and the true value is {params["alpha"]} with a percentage accuracy of {(np.abs(alpha-params["alpha"])/params["alpha"])*100:.2f}%
-            For an SNR of {i} the calculated value of Gamma is {gamma:.2f} and the true value is {params["gamma"]} with a percentage accuracy of {(np.abs(gamma-params["gamma"])/params["gamma"])*100:.2f}%\n""")
+            print(f"""At SNR {i} the percentage error for Alpha is {(np.abs(alpha-params["alpha"])/params["alpha"])*100:.2f}%
+At SNR {i} the percentage error for Gamma is {(np.abs(gamma-params["gamma"])/params["gamma"])*100:.2f}%\n""")
     return studyA,studyG
         
 #------------------------Noise study----------------------------#
@@ -57,14 +57,16 @@ def NoiseStudy(TotTime,timestep,params,state):
     plt.xscale('log')
     plt.xticks([100,10,5,2,1], ['100','10','5','2','1'])
     plt.errorbar(SNR,Amean,yerr=Astd,fmt='o')
+    plt.axhline(y=20,color = "r")
     plt.show()
     plt.figure()
     plt.title("Gamma errorbar")
     plt.xscale('log')
     plt.xticks([100,10,5,2,1], ['100','10','5','2','1'])
     plt.errorbar(SNR,Gmean,yerr=Gstd,fmt='o')
+    plt.axhline(y=20,color = "r")
     plt.show()
 
 if __name__ == "__main__":
-    #linearReg(linear_params)
-    NoiseStudy(50,0.063,linear_params,[1,0])
+    linearReg(linear_params,0)
+    #NoiseStudy(50,0.063,linear_params,[1,0])

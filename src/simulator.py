@@ -108,9 +108,9 @@ def omegaSweep(steps,timestep,params,state): #Sweeps for best omega value based 
 
 
 
-#PlotRK4(1000,0.063,hard_params,[1,0])
-
-#omegaSweep(1000,0.063,easy_params,[1,0])
+if __name__ == "__main__":
+    PlotRK4(1000,0.063,easy_params,[1,0])
+    #omegaSweep(1000,0.063,easy_params,[1,0])
 
     
 

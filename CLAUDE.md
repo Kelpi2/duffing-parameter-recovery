@@ -1,5 +1,5 @@
 # Physics from Noise — Project Context
-Do not make any edits yourself unless specifically requested. Guidance should be provided as default response
+
 ## Status
 - **Current phase:** Phase 1 — Foundations & Simulation (Days 1–7)
 - **Current day:** Day 6 mostly complete (gradient descent + lr schedule + L2 built; normal eq vs GD vs Ridge comparison table outstanding). Day 7 NoiseStudy done; noise-floor derivation and Phase 1 write-up outstanding.
@@ -15,6 +15,9 @@ First-order form (state vector [x, v]):
 x' = v
 v' = −γv − αx − βx³ + F cos(ωt)
 ```
+
+## Behaviour
+Do not make any edits yourself unless specifically requested. Guidance should be provided as default response.
 
 ## Constraints
 - Python + NumPy only (no ML libraries)

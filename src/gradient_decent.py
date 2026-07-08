@@ -42,7 +42,7 @@ def gradient_descent(params,epochs,lr,graphs,L2):
             if (epoch+1) %100 ==0:   
                 lr = lr*0.95
             if (epoch+1) %10 ==0:
-                lossCurve.append(loss(states,pred,estimAccel))
+                lossCurve.append(loss(states_normal,pred,estimAccel))
             pred = pred-lr*grad(states_normal,pred,estimAccel,L2)
             alphaCurve.append(pred[0]/std[0])
             gammaCurve.append(pred[1]/std[1])
@@ -63,10 +63,6 @@ def gradient_descent(params,epochs,lr,graphs,L2):
         gammaCurve = []
         lossCurve = []
 
-def table():
-    plt.table()
-
-
 if __name__ == "__main__":
-    gradient_descent(linear_params,100,0.1,0,0.01) #params,epochs,lr,graphs,lambda(L2)
+    gradient_descent(linear_params,1000,0.1,0,0.05) #params,epochs,lr,graphs,lambda(L2)
 
