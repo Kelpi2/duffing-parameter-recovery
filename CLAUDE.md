@@ -2,8 +2,9 @@
 
 ## Status
 - **Current phase:** Phase 1 — Foundations & Simulation (Days 1–7)
-- **Current day:** Day 6 mostly complete (gradient descent + lr schedule + L2 built; normal eq vs GD vs Ridge comparison table outstanding). Day 7 NoiseStudy done; noise-floor derivation and Phase 1 write-up outstanding.
-- **Last updated:** 2026-06-10
+- **Current day:** Day 6 mostly complete (gradient descent + lr schedule + L2 built; normal eq vs GD vs Ridge comparison table outstanding). Day 7 NoiseStudy done.
+- **Plan change (2026-07-08):** write-up and derivations (noise-floor derivation, Phase 1 write-up) are deferred until after all the coding is done. Focus is on the coding first.
+- **Last updated:** 2026-07-08
 
 ## System
 Duffing oscillator: `x'' + γx' + αx + βx³ = F cos(ωt)`
@@ -18,6 +19,8 @@ v' = −γv − αx − βx³ + F cos(ωt)
 
 ## Behaviour
 Do not make any edits yourself unless specifically requested. Guidance should be provided as default response.
+
+The Session log is written by Maciej in his own words — do not write log entries for him. If something happens that seems worth logging (progress, or something that tripped him up) and he hasn't logged it, just remind him.
 
 ## Constraints
 - Python + NumPy only (no ML libraries)

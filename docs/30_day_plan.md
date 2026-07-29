@@ -143,14 +143,12 @@ A-level calculus (differentiation, integration, chain rule), basic linear algebr
 
 - Study autoregressive models: x(t) = Σ a_k · x(t − k·Δt) + ε(t) for k = 1…p
 - Understand the connection between AR coefficients and the underlying continuous ODE
-- Derive the Yule-Walker equations: solve for AR coefficients from the autocorrelation matrix
 - Work through the mapping: for a second-order ODE discretised at step dt, an AR(2) model's coefficients encode α, γ
 
 > **Deliverable:** handwritten derivation of Yule-Walker equations and the AR ↔ ODE coefficient mapping.
 
 ### Day 9: AR Model Implementation
 
-- Implement AR(p) fitting via Yule-Walker: compute autocorrelation, solve the Toeplitz system
 - Implement AR(p) fitting via least-squares (for comparison and as a check)
 - Test on the linear oscillator (β = 0, SNR = 100): fit AR(2) and extract α, γ from the coefficients
 - Verify the recovered parameters match ground truth to within numerical precision
