@@ -31,7 +31,8 @@ def AIC(Maxp):
         AIC = []
         data = np.load(os.path.join(DATA_DIR, f"dataset_SNR{i}.npz"))
         for order in range(1,Maxp+1):
-            AIC.append(fit(data["CleanStates"][:,0],order,Maxp)[1])
+            AIC.append(fit(data["NoisyDis"],order,Maxp)[1])
+            #AIC.append(fit(data["CleanStates"][:,0]order,Maxp)[1]) #clean states testing
         print(f"Smallest AIC at SNR {i} has the order {AIC.index(min(AIC))+1}")
 
 
