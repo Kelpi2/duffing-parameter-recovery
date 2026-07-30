@@ -47,4 +47,4 @@ def compare(TotTime,timestep,params,state): #compares 4 levels of SNR - Ignore
 
 if __name__ == "__main__":
     #compare(1000,0.063,linear_params,[1,0])
-    generateDataset(50,0.063,linear_params,[1,0])
+    generateDataset(63,0.063,linear_params,[1,0]) #63 for 1000 data points
