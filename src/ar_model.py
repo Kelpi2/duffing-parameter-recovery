@@ -4,24 +4,35 @@ DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data")
 
 #2nd order ar reg
 
-def fit(disp):
+def fit(disp,order,Maxp):
     n=len(disp)
-    y = disp[2:]
-    X = np.array([disp[1:n-1],disp[0:n-2]])
-    X = np.column_stack(X)
-    scalar = np.linalg.inv(X.T@X)@(X.T@y) #a1,a2 respectively
-    return scalar[0],scalar[1]
+    y = disp[Maxp:]
+    X = np.column_stack([disp[Maxp-k : n-k] for k in range(1, order+1)])
+    scalars = np.linalg.inv(X.T@X)@(X.T@y) 
+    residuals = y-X@scalars
+    rss = residuals@residuals
+    AIC = len(y)*np.log(rss/len(y))+2*order
+    return scalars,AIC
 
-def predict():
-    SNR = SNR = [100,10,5,2,1]
+def recoverParam():
+    SNR = [100,10,5,2,1]
     for i in SNR:
             data = np.load(os.path.join(DATA_DIR, f"dataset_SNR{i}.npz"))
-            a1,a2  = fit(data["CleanStates"][:,0])
+            (a1, a2), ___ = fit(data["CleanStates"][:,0], 2, 2)
             h = data["timestep"]
             gamma = -np.log(-a2)/h
             freq = (1/h)*np.arccos(a1/(2*np.sqrt(-a2)))
             alpha = freq**2 + (gamma**2)/4
             print(f"a = {alpha}, y = {gamma}, freq = {freq}")
 
-predict()
+def AIC(Maxp):
+    SNR = [100,10,5,2,1]
+    for i in SNR:
+        AIC = []
+        data = np.load(os.path.join(DATA_DIR, f"dataset_SNR{i}.npz"))
+        for order in range(1,Maxp+1):
+            AIC.append(fit(data["CleanStates"][:,0],order,Maxp)[1])
+        print(f"Smallest AIC at SNR {i} has the order {AIC.index(min(AIC))+1}")
 
+
+AIC(10)
