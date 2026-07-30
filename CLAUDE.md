@@ -1,10 +1,11 @@
 # Physics from Noise — Project Context
 
 ## Status
-- **Current phase:** Phase 1 — Foundations & Simulation (Days 1–7)
-- **Current day:** Day 6 mostly complete (gradient descent + lr schedule + L2 built; normal eq vs GD vs Ridge comparison table outstanding). Day 7 NoiseStudy done.
-- **Plan change (2026-07-08):** write-up and derivations (noise-floor derivation, Phase 1 write-up) are deferred until after all the coding is done. Focus is on the coding first.
-- **Last updated:** 2026-07-08
+- **Current phase:** Phase 2 — Time-Series Modelling / AR (Days 8–13)
+- **Current day:** Days 9, 11, 12 coded. Day 10 partial (AIC works, nonlinear run outstanding). Next: Phase 3 MLP.
+- **Plan change (2026-07-08):** write-up and derivations (noise-floor derivation, Phase 1 write-up) are deferred until after all the coding is done. Focus is on the coding first. Figures are generated and inspected but not saved/styled — that is Day 26 work.
+- **Outstanding from Phase 1:** normal eq vs GD vs Ridge comparison table (Day 6).
+- **Last updated:** 2026-07-30
 
 ## System
 Duffing oscillator: `x'' + γx' + αx + βx³ = F cos(ωt)`
@@ -29,8 +30,8 @@ The Session log is written by Maciej in his own words — do not write log entri
 
 ## Repo structure
 ```
-src/                  → simulator.py, generator.py, linear_regression.py, gradient_decent.py
-                        (planned: ar_model.py, mlp.py, experiments.py, plotting.py)
+src/                  → simulator.py, generator.py, linear_regression.py, gradient_decent.py, ar_model.py
+                        (planned: mlp.py, experiments.py, plotting.py)
 data/                 → generated .npz datasets (gitignored)
 figures/              → output plots
 report/               → final write-up
@@ -53,8 +54,13 @@ docs/30_day_plan.md   → full 30-day plan
 - `src/generator.py` — addNoise(), FDV(), generateDataset() saves .npz files with NoisyDis, NoisyVel, CleanStates, timestep. Datasets generated using linear_params (F=0, γ=0.2) to avoid driving force corrupting regression.
 - `src/linear_regression.py` — buildMatrices(), normalEq(), linearReg() loops over SNR levels and prints recovery table. NoiseStudy() repeats recovery 20× per SNR and plots error bars.
 - `src/gradient_decent.py` — loss(), grad(), gradient_descent() with lr decay, L2, and normalised features.
+- `src/ar_model.py` — fit() does AR(p) least squares and returns coefficients + AIC. recoverParam() maps AR(2) coefficients back to α and γ via a2 = −e^(−γh), a1 = 2e^(−γh/2)cos(ω_d·h), with a guard for invalid a2/arccos values. AIC() sweeps order 1–Maxp. predict() does recursive multi-step forecasting and builds RMSE vs horizon across sliding start points. All three take a decimation argument.
 
 ## Key decisions (additions)
 - Datasets generated with F=0 (linear_params) for regression — driving force term not in regression model so must be zero to avoid bias.
 - X matrix column order: [noisyDis, noisyVel] → solutions[0]=α, solutions[1]=γ (negated).
 - camelCase naming convention throughout all files.
+- **AR fits use decimation (dec = 25).** dt = 0.063 was chosen for RK4 accuracy, not identifiability. At that spacing a2 → −1 and the arccos argument → 1 almost regardless of γ and α, so noise swamps what little parameter signal remains — every fit fails below SNR 100 (a2 turns positive, −ln(−a2) undefined). Error minimises around dec 25–30; beyond that sample count drops too far and it rises again. Simulate finely, fit coarsely.
+- Datasets are regenerated per parameter set rather than tagged by filename — switching between linear and nonlinear means rerunning `generateDataset`, and only one set exists on disk at a time.
+- AIC is run on noisy data, not clean: on clean data the residuals are RK4 rounding error and XᵀX is rank-deficient past p=2.
+- Forecasting scores noisy input against clean truth. `NoisyDis[j]` corresponds to `CleanStates[j+1, 0]` because of the `[1:-1]` trim in generator.py.

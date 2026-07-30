@@ -15,3 +15,5 @@ Things that came up during the project that weren't fully understood at the time
 - Why γ survives noise better than α (shared noise source between predictor and target)
 
 ---
+
+rmse implementation
