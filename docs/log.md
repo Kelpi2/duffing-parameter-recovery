@@ -18,3 +18,10 @@ Predict function is returning a large numpy array per SNR level, however it shou
 Fix: Entire prediction array was being printed out except only the newly generated values
 
 Added a decimation value to recoverParam as the small timestep value adequate for rk4 causes a2 and the arcos argumen to sit at their limits(-1 and 1) almost regardless of gamma and alpha, leaving too little signal for the fir to survive noise.
+
+02-08-26
+trainSet[traj] = states was writing a (604,2) array inyo a (604,) row fixed by slicing the states array:states[:604, 0]
+
+loss() was returning an array so epochloss accumulated an array and the yaxis[epoch] assignment failed. Fixed by taking the mean over both axis
+
+

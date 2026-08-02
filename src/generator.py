@@ -10,6 +10,28 @@ def addNoise(displacement,SD): #Guassian noise
     noise = np.random.normal(size = (len(displacement)), loc = 0,scale = SD)
     return displacement + noise
 
+def MLPdataset(rows):
+    training_Params = {"gamma":0,"alpha":0,"beta":0,"F":0,"omega":0}
+    trainSet = np.zeros((rows,604))
+    TruthLabels = np.zeros((rows,5))
+
+    for traj in range(rows):
+        training_Params["alpha"] = np.random.uniform(0.5, 2)
+        training_Params["beta"] = np.random.uniform(0.2, 2)
+        training_Params["gamma"] = np.random.uniform(0.1, 0.5)
+        training_Params["F"] = np.random.uniform(0.5, 2)
+        training_Params["omega"] = np.random.uniform(0.1, 0.6)
+        states,__ = simulateRK4(38,0.063,training_Params,[1,0]) #TotTime,timestep(0.063),params,state
+        trainSet[traj] = states[:604, 0]
+        TruthLabels[traj,0] = training_Params["alpha"]
+        TruthLabels[traj,1] = training_Params["beta"]
+        TruthLabels[traj,2] = training_Params["gamma"]
+        TruthLabels[traj,3] = training_Params["F"]
+        TruthLabels[traj,4] = training_Params["omega"]
+
+    return trainSet,TruthLabels
+
+
 def generateDataset(TotTime,timestep,params,state): #Generates and saves data,clean + noisy
     SNR = [100,10,5,2,1]
     states,__ = simulateRK4(TotTime,timestep,params,state)
