@@ -7,7 +7,7 @@ DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data")
 
 
 def addNoise(displacement,SD): #Guassian noise
-    noise = np.random.normal(size = (len(displacement)), loc = 0,scale = SD)
+    noise = np.random.normal(size = (displacement.shape), loc = 0,scale = SD)
     return displacement + noise
 
 def MLPdataset(rows):
@@ -28,7 +28,7 @@ def MLPdataset(rows):
         TruthLabels[traj,2] = training_Params["gamma"]
         TruthLabels[traj,3] = training_Params["F"]
         TruthLabels[traj,4] = training_Params["omega"]
-
+    np.savez(os.path.join(DATA_DIR, f"MLPdataset"), trainSet = trainSet, TruthLabels = TruthLabels)
     return trainSet,TruthLabels
 
 

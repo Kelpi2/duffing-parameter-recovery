@@ -20,7 +20,7 @@ def recoverParam(dec):
     for i in SNR:
             data = np.load(os.path.join(DATA_DIR, f"dataset_SNR{i}.npz"))
             #(a1, a2), ___ = fit(data["CleanStates"][::dec,0], 2, 2)
-            (a1, a2), ___ = fit(data["NoisyDis"][:dec], 2, 2)
+            (a1, a2), ___ = fit(data["NoisyDis"][: :dec], 2, 2)
             h = data["timestep"]*dec
             if a2>=0 or abs(a1/(2*np.sqrt(-a2)))>1: #check for invaldi values
                  print(np.nan)

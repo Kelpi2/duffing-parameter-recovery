@@ -1,31 +1,47 @@
 import numpy as np
 from numpy import random
 import matplotlib.pyplot as plt
-from generator import MLPdataset
+import os
+DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data")
+from generator import MLPdataset,addNoise
+np.random.seed(200)
 
 #dataset stuff
-def prepareData(num):
-    (X,Y) = MLPdataset(num)
-    num = int(num*0.8)
-    X_train = X[:num]
-    X_test = X[num:]
+def prepareData(num,generate,SNR):
+    if generate:
+        (X,Y) = MLPdataset(num)
+    else:
+        data = np.load(os.path.join(DATA_DIR, f"MLPdataset.npz"))
+        (X,Y) = (data["trainSet"],data["TruthLabels"])
+    if SNR != "clean":
+        SD = X.std(axis=1, keepdims=True)/SNR
+        X = addNoise(X,SD)
+    
+    Tnum = int(num*0.6)
+    Vnum = int(num*0.2) + Tnum
+    X_train = X[:Tnum]
+    X_eval = X[Tnum:Vnum]
+    X_test = X[Vnum:]
     Xmean = np.mean(X_train)
     Xstd = np.std(X_train)
     X_train = (X_train-Xmean)/Xstd
     X_test = (X_test-Xmean)/Xstd
+    X_eval = (X_eval-Xmean)/Xstd
 
-    Y_train = Y[:num]
-    Y_test = Y[num:]
+    Y_train = Y[:Tnum]
+    Y_eval = Y[Tnum:Vnum]
+    Y_test = Y[Vnum:]
     Ymean = np.mean(Y_train,axis = 0)
     Ystd = np.std(Y_train,axis = 0)
     Y_train = (Y_train-Ymean)/Ystd
+    Y_eval = (Y_eval-Ymean)/Ystd
 
-    return X_train,X_test,Y_train,Y_test,Ymean,Ystd
+    return X_train,X_test,Y_train,Y_test,Ymean,Ystd,X_eval,Y_eval
 
 #initialize weights & functions
 
 def initWeights():
-    sizes = [604,128,5] 
+    sizes = [604,128,64,32,16,5] 
     weights,biases = [],[]
     for wIn, wOut in zip(sizes[:-1],sizes[1:]):
         weights.append(np.random.randn(wIn,wOut)*np.sqrt(1/wIn))
@@ -33,10 +49,10 @@ def initWeights():
     return weights,biases
         
 def Tanh(x):
-    return (np.exp(x)-np.exp(-x))/(np.exp(x)+np.exp(-x))
+    return np.tanh(x)
 
 def DervTanh(x):
-    return 1-Tanh(x)**2
+    return 1-np.tanh(x)**2
 
 def loss(pred, y):
     return np.mean((pred - y)**2)
@@ -84,15 +100,19 @@ def update(weights, biases, dervW,dervB,lr):
         biases[i] = biases[i] - lr*dervB[i]
     return weights, biases
 
-def trainLoop(X_train,Y_train,epochs):
+def trainLoop(X_train,Y_train,X_eval,Y_eval,epochs,plot,seed):
+    np.random.seed(seed)
     lr = 0.01
     xaxis = np.arange(epochs)
+    tempYaxis = yaxis = np.zeros(epochs)
     yaxis = np.zeros(epochs)
     weights,biases = initWeights()
+    minloss = 0
 
     for epoch in range(epochs):
         sIndex = np.random.permutation(len(X_train))
         X_train, Y_train = X_train[sIndex], Y_train[sIndex]
+
         epochLoss = 0
         counter = 0
         for index in range(0,len(X_train), 32):
@@ -103,22 +123,52 @@ def trainLoop(X_train,Y_train,epochs):
             dervW, dervB = backwards(y,raw,activated,weights)
             weights,biases = update(weights,biases,dervW,dervB,lr)
             counter += 1
+        #Smallest loss
+        raw,activated = forward(X_eval,weights,biases)
+        temploss = loss(activated[-1],Y_eval)
+        if temploss < minloss or minloss == 0:
+            minloss = temploss
+            minWeights,minBiases = weights.copy(),biases.copy()
+            minEpoch = epoch
+        tempYaxis[epoch] = temploss
         yaxis[epoch] = epochLoss/(counter)
         if epoch % 50 ==0 :
             print(epochLoss/counter)
-    return weights,biases
+    if plot:
+        plt.plot(xaxis,yaxis,label = "Loss")
+        plt.plot(xaxis,tempYaxis,label = "TempLoss")
+        plt.legend()
+        plt.show()
+    print(minEpoch)    
 
-def accuracy(Y_test,Ymean,Ystd):
+    return minWeights,minBiases
+
+def accuracy(activated,Y,Ymean,Ystd):
     pred = activated[-1]*Ystd+Ymean
-    res = np.sum((pred-Y_test)**2,axis = 0)
-    testMean = np.mean(Y_test, axis=0)
-    tot = np.sum((Y_test - testMean)**2,axis=0)
+    res = np.sum((pred-Y)**2,axis = 0)
+    testMean = np.mean(Y, axis=0)
+    tot = np.sum((Y - testMean)**2,axis=0)
     params = 1-res/tot
     print(params)
-    print(np.sqrt(np.mean((pred - Y_test)**2, axis=0)))
+    print(np.sqrt(np.mean((pred - Y)**2, axis=0)))
+
+def test(X,Y,weights,biases,Ymean,Ystd,test):
+    if test:
+        print("Test set")
+        __,activated = forward(X,weights,biases)
+        accuracy(activated,Y,Ymean,Ystd)
 
 if __name__ == "__main__":
-    X_train,X_test,Y_train,Y_test,Ymean,Ystd = prepareData(1000)
-    weights,biases = trainLoop(X_train,Y_train,1000)
-    __,activated = forward(X_test,weights,biases)
-    accuracy(Y_test,Ymean,Ystd)
+    X_train,X_test,Y_train,Y_test,Ymean,Ystd,X_eval,Y_eval = prepareData(5000,0,1) #Trajectories,gen new data,SNR
+    weights,biases = trainLoop(X_train,Y_train,X_eval,Y_eval,1000,1,100)  #X,Y,X_val,Y_val,Epochs,Plots,Seed
+    __,activated = forward(X_eval,weights,biases)
+
+    print("Eval set")
+    accuracy(activated,(Y_eval*Ystd+Ymean),Ymean,Ystd)
+    test(X_test,Y_test,weights,biases,Ymean,Ystd,1)
+
+    #fit check
+    print("Fit check")
+    __,activated = forward(X_train,weights,biases)
+    accuracy(activated,(Y_train*Ystd+Ymean),Ymean,Ystd)
+    

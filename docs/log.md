@@ -1,4 +1,4 @@
-Theres no previous bug history as i started it today to keep a record, previous changes can be found in commit history
+Theres no previous bug history as I started it today to keep a record, previous changes can be found in commit history
 10-06-2026
 Caught a failed lr reset attempt which caused the decayed lr to leak into subsequent SNR levels leading to a tiny lr, fixed by changing lr = startlr
 
@@ -20,8 +20,15 @@ Fix: Entire prediction array was being printed out except only the newly generat
 Added a decimation value to recoverParam as the small timestep value adequate for rk4 causes a2 and the arcos argumen to sit at their limits(-1 and 1) almost regardless of gamma and alpha, leaving too little signal for the fir to survive noise.
 
 02-08-26
-trainSet[traj] = states was writing a (604,2) array inyo a (604,) row fixed by slicing the states array:states[:604, 0]
+TrainSet[traj] = states was writing a (604,2) array inyo a (604,) row fixed by slicing the states array:states[:604, 0]
 
 loss() was returning an array so epochloss accumulated an array and the yaxis[epoch] assignment failed. Fixed by taking the mean over both axis
+
+Model was overfitting with the largest gap being 0.2 on gamma. 
+Improved by generating more rows, from 1000 to 5000 for 4000 training points
+
+05-08-26
+Added evaluation for each epoch to further reduce overfitting
+Lists weren't properly copied so minWeights wasnt calculated properly, changed to .copy() as the fix
 
 
