@@ -31,4 +31,10 @@ Improved by generating more rows, from 1000 to 5000 for 4000 training points
 Added evaluation for each epoch to further reduce overfitting
 Lists weren't properly copied so minWeights wasnt calculated properly, changed to .copy() as the fix
 
+06-08-26
+At snr 1 the model is still trying to learn noise rather than the parameters. Minimum is at epoch 9 and 
+Fixed by changing how prepareData() works, split then add noise, keeping X_train clean and adding noise to training data in trainLoop() every epoch
 
+X_train was being reset to its original order every epoch unlike Y_train which stayed in its shuffled order causing a mismatch in trajectories to parameters causing the network to regress.
+Fixed by creating new variables X_shuff,Y_shuff rather than manipulating original training sets
+ 

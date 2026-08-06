@@ -13,12 +13,15 @@ def prepareData(num,generate,SNR):
     else:
         data = np.load(os.path.join(DATA_DIR, f"MLPdataset.npz"))
         (X,Y) = (data["trainSet"],data["TruthLabels"])
+
+    Tnum = int(num*0.6)
+    Vnum = int(num*0.2) + Tnum
+    X_clean = X[:Tnum]
+
     if SNR != "clean":
         SD = X.std(axis=1, keepdims=True)/SNR
         X = addNoise(X,SD)
-    
-    Tnum = int(num*0.6)
-    Vnum = int(num*0.2) + Tnum
+
     X_train = X[:Tnum]
     X_eval = X[Tnum:Vnum]
     X_test = X[Vnum:]
@@ -36,7 +39,7 @@ def prepareData(num,generate,SNR):
     Y_train = (Y_train-Ymean)/Ystd
     Y_eval = (Y_eval-Ymean)/Ystd
 
-    return X_train,X_test,Y_train,Y_test,Ymean,Ystd,X_eval,Y_eval
+    return X_clean,X_test,Y_train,Y_test,Ymean,Ystd,X_eval,Y_eval,Xstd,Xmean
 
 #initialize weights & functions
 
@@ -100,24 +103,32 @@ def update(weights, biases, dervW,dervB,lr):
         biases[i] = biases[i] - lr*dervB[i]
     return weights, biases
 
-def trainLoop(X_train,Y_train,X_eval,Y_eval,epochs,plot,seed):
+def trainLoop(X_clean,Y_train,X_eval,Y_eval,Xstd,Xmean,epochs,plot,seed,SNR):
     np.random.seed(seed)
     lr = 0.01
     xaxis = np.arange(epochs)
-    tempYaxis = yaxis = np.zeros(epochs)
+    tempYaxis = np.zeros(epochs)
     yaxis = np.zeros(epochs)
     weights,biases = initWeights()
     minloss = 0
 
     for epoch in range(epochs):
+
+        if SNR != "clean":
+                SD = X_clean.std(axis=1, keepdims=True)/SNR
+                X_train = addNoise(X_clean,SD)
+        else:
+            X_train = X_clean
+        X_train = (X_train-Xmean)/Xstd
+
         sIndex = np.random.permutation(len(X_train))
-        X_train, Y_train = X_train[sIndex], Y_train[sIndex]
+        X_shuff, Y_shuff = X_train[sIndex], Y_train[sIndex]
 
         epochLoss = 0
         counter = 0
-        for index in range(0,len(X_train), 32):
-            X = X_train[index:index+32]
-            y = Y_train[index:index+32]
+        for index in range(0,len(X_shuff), 32):
+            X = X_shuff[index:index+32]
+            y = Y_shuff[index:index+32]
             raw,activated = forward(X,weights,biases)
             epochLoss += loss(activated[-1],y)
             dervW, dervB = backwards(y,raw,activated,weights)
@@ -159,8 +170,9 @@ def test(X,Y,weights,biases,Ymean,Ystd,test):
         accuracy(activated,Y,Ymean,Ystd)
 
 if __name__ == "__main__":
-    X_train,X_test,Y_train,Y_test,Ymean,Ystd,X_eval,Y_eval = prepareData(5000,0,1) #Trajectories,gen new data,SNR
-    weights,biases = trainLoop(X_train,Y_train,X_eval,Y_eval,1000,1,100)  #X,Y,X_val,Y_val,Epochs,Plots,Seed
+    SNR = 1
+    X_train,X_test,Y_train,Y_test,Ymean,Ystd,X_eval,Y_eval,Xstd,Xmean = prepareData(20000,0,SNR) #Trajectories,gen new data,SNR
+    weights,biases = trainLoop(X_train,Y_train,X_eval,Y_eval,Xstd,Xmean,1000,1,100,SNR)  #X,Y,X_val,Y_val,Xstd,Xmean,Epochs,Plots,Seed,snr
     __,activated = forward(X_eval,weights,biases)
 
     print("Eval set")
@@ -169,6 +181,11 @@ if __name__ == "__main__":
 
     #fit check
     print("Fit check")
-    __,activated = forward(X_train,weights,biases)
+
+    if SNR != "clean":
+            SD = X_train.std(axis=1, keepdims=True)/SNR
+            X_train = addNoise(X_train,SD)
+
+    __,activated = forward((X_train-Xmean)/Xstd,weights,biases)
     accuracy(activated,(Y_train*Ystd+Ymean),Ymean,Ystd)
     
