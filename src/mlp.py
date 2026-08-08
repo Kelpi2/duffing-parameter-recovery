@@ -3,6 +3,7 @@ from numpy import random
 import matplotlib.pyplot as plt
 import os
 DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data")
+FIG_DIR = os.path.join(os.path.dirname(__file__), "..", "figures")
 from generator import MLPdataset,addNoise
 np.random.seed(200)
 
@@ -146,10 +147,12 @@ def trainLoop(X_clean,Y_train,X_eval,Y_eval,Xstd,Xmean,epochs,plot,seed,SNR):
         if epoch % 50 ==0 :
             print(epochLoss/counter)
     if plot:
-        plt.plot(xaxis,yaxis,label = "Loss")
-        plt.plot(xaxis,tempYaxis,label = "TempLoss")
+        plt.figure()
+        plt.plot(xaxis,yaxis,label = "Train")
+        plt.plot(xaxis,tempYaxis,label = "Eval")
         plt.legend()
-        plt.show()
+        plt.savefig(os.path.join(FIG_DIR,f"loss_SNR{SNR}.png"))
+        plt.close()
     print(minEpoch)    
 
     return minWeights,minBiases
@@ -161,31 +164,53 @@ def accuracy(activated,Y,Ymean,Ystd):
     tot = np.sum((Y - testMean)**2,axis=0)
     params = 1-res/tot
     print(params)
-    print(np.sqrt(np.mean((pred - Y)**2, axis=0)))
+    RMSE = np.sqrt(np.mean((pred - Y)**2, axis=0))
+    print(RMSE)
+    return params,RMSE
 
-def test(X,Y,weights,biases,Ymean,Ystd,test):
-    if test:
-        print("Test set")
-        __,activated = forward(X,weights,biases)
-        accuracy(activated,Y,Ymean,Ystd)
+def test(X,Y,weights,biases,Ymean,Ystd):
+    print("Test set")
+    __,activated = forward(X,weights,biases)
+    return accuracy(activated,Y,Ymean,Ystd)
+
+def SNRloop(testSet,levels,epochs,rows):
+    R2List = []
+    RMSEList = []
+    for snr in levels:
+        X_train,X_test,Y_train,Y_test,Ymean,Ystd,X_eval,Y_eval,Xstd,Xmean = prepareData(rows,0,snr) #Trajectories,gen new data,SNR
+        weights,biases = trainLoop(X_train,Y_train,X_eval,Y_eval,Xstd,Xmean,epochs,1,100,snr)  #X,Y,X_val,Y_val,Xstd,Xmean,Epochs,Plots,Seed,snr
+        __,activated = forward(X_eval,weights,biases)
+
+        print(f"SNR: {snr}")
+        print("Eval set")
+        accuracy(activated,(Y_eval*Ystd+Ymean),Ymean,Ystd)
+        if testSet:
+            R2,RMSE = test(X_test,Y_test,weights,biases,Ymean,Ystd)
+            R2List.append(R2)
+            RMSEList.append(RMSE)
+        
+        #fit check
+        print("Fit check")
+        
+        if snr != "clean":
+                SD = X_train.std(axis=1, keepdims=True)/snr
+                X_train = addNoise(X_train,SD)
+        
+        __,activated = forward((X_train-Xmean)/Xstd,weights,biases)
+        accuracy(activated,(Y_train*Ystd+Ymean),Ymean,Ystd)
+        #save Weights and data
+        network = {}
+        for index,item in enumerate(weights):
+            network[f"w{index}"] = item
+            network[f"b{index}"] = biases[index]
+        network["Xmean"] = Xmean
+        network["Xstd"] = Xstd
+        network["Ymean"] = Ymean
+        network["Ystd"] = Ystd
+        np.savez(os.path.join(DATA_DIR, f"Network SNR_{snr}"),**network)
+    np.savez(os.path.join(DATA_DIR, f"Network Results"),SNR = levels, R2 = R2List, RMSE = RMSEList)
+
 
 if __name__ == "__main__":
-    SNR = 1
-    X_train,X_test,Y_train,Y_test,Ymean,Ystd,X_eval,Y_eval,Xstd,Xmean = prepareData(20000,0,SNR) #Trajectories,gen new data,SNR
-    weights,biases = trainLoop(X_train,Y_train,X_eval,Y_eval,Xstd,Xmean,1000,1,100,SNR)  #X,Y,X_val,Y_val,Xstd,Xmean,Epochs,Plots,Seed,snr
-    __,activated = forward(X_eval,weights,biases)
 
-    print("Eval set")
-    accuracy(activated,(Y_eval*Ystd+Ymean),Ymean,Ystd)
-    test(X_test,Y_test,weights,biases,Ymean,Ystd,1)
-
-    #fit check
-    print("Fit check")
-
-    if SNR != "clean":
-            SD = X_train.std(axis=1, keepdims=True)/SNR
-            X_train = addNoise(X_train,SD)
-
-    __,activated = forward((X_train-Xmean)/Xstd,weights,biases)
-    accuracy(activated,(Y_train*Ystd+Ymean),Ymean,Ystd)
-    
+    SNRloop(1,["clean",100,10,5,2,1],1000,20000)

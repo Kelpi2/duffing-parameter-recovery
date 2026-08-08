@@ -38,3 +38,6 @@ Fixed by changing how prepareData() works, split then add noise, keeping X_train
 X_train was being reset to its original order every epoch unlike Y_train which stayed in its shuffled order causing a mismatch in trajectories to parameters causing the network to regress.
 Fixed by creating new variables X_shuff,Y_shuff rather than manipulating original training sets
  
+ 08-08-26
+ Smaller bugs: network file had a colon which is illegal on windows - replaced with _,when defining path for figures it shared them with data - changed var name
+SNRLoop collected R2 and RMSE per level which led to inconsitent saving in network data file, fixed by saving the runs in seperate data files
