@@ -10,25 +10,25 @@ def addNoise(displacement,SD): #Guassian noise
     noise = np.random.normal(size = (displacement.shape), loc = 0,scale = SD)
     return displacement + noise
 
-def MLPdataset(rows):
+def MLPdataset(rows,length,FileName,alpha,beta,gamma,F,omega):
     training_Params = {"gamma":0,"alpha":0,"beta":0,"F":0,"omega":0}
-    trainSet = np.zeros((rows,604))
+    trainSet = np.zeros((rows,len(np.arange(0, length, 0.063))))
     TruthLabels = np.zeros((rows,5))
 
     for traj in range(rows):
-        training_Params["alpha"] = np.random.uniform(0.5, 2)
-        training_Params["beta"] = np.random.uniform(0.2, 2)
-        training_Params["gamma"] = np.random.uniform(0.1, 0.5)
-        training_Params["F"] = np.random.uniform(0.5, 2)
-        training_Params["omega"] = np.random.uniform(0.1, 0.6)
-        states,__ = simulateRK4(38,0.063,training_Params,[1,0]) #TotTime,timestep(0.063),params,state
-        trainSet[traj] = states[:604, 0]
+        training_Params["alpha"] = np.random.uniform(*alpha)
+        training_Params["beta"] = np.random.uniform(*beta)
+        training_Params["gamma"] = np.random.uniform(*gamma)
+        training_Params["F"] = np.random.uniform(*F)
+        training_Params["omega"] = np.random.uniform(*omega)
+        states,__ = simulateRK4(length,0.063,training_Params,[1,0]) #TotTime,timestep(0.063),params,state
+        trainSet[traj] = states[:, 0]
         TruthLabels[traj,0] = training_Params["alpha"]
         TruthLabels[traj,1] = training_Params["beta"]
         TruthLabels[traj,2] = training_Params["gamma"]
         TruthLabels[traj,3] = training_Params["F"]
         TruthLabels[traj,4] = training_Params["omega"]
-    np.savez(os.path.join(DATA_DIR, f"MLPdataset"), trainSet = trainSet, TruthLabels = TruthLabels)
+    np.savez(os.path.join(DATA_DIR, FileName), trainSet = trainSet, TruthLabels = TruthLabels)
     return trainSet,TruthLabels
 
 

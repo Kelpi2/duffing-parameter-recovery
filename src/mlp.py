@@ -8,12 +8,16 @@ from generator import MLPdataset,addNoise
 np.random.seed(200)
 
 #dataset stuff
-def prepareData(num,generate,SNR):
+def prepareData(num,generate,SNR,FileName):
     if generate:
-        (X,Y) = MLPdataset(num)
+        (X,Y) = MLPdataset(num,126,FileName,(0.5,2), (0,0), (0.1,0.5), (0,0), (0,0)) #rows,length,FileName,alpha,beta,gamma,F,omega
+        X = X[:, :604]
+        Y = Y[:, [0,2]] #change when changing ranges
     else:
-        data = np.load(os.path.join(DATA_DIR, f"MLPdataset.npz"))
+        data = np.load(os.path.join(DATA_DIR, f"{FileName}.npz"))
         (X,Y) = (data["trainSet"],data["TruthLabels"])
+        X = X[:, :604]
+        Y = Y[:, [0,2]] #change when changing ranges
 
     Tnum = int(num*0.6)
     Vnum = int(num*0.2) + Tnum
@@ -45,7 +49,7 @@ def prepareData(num,generate,SNR):
 #initialize weights & functions
 
 def initWeights():
-    sizes = [604,128,64,32,16,5] 
+    sizes = [604,128,64,32,16,2] 
     weights,biases = [],[]
     for wIn, wOut in zip(sizes[:-1],sizes[1:]):
         weights.append(np.random.randn(wIn,wOut)*np.sqrt(1/wIn))
@@ -173,11 +177,11 @@ def test(X,Y,weights,biases,Ymean,Ystd):
     __,activated = forward(X,weights,biases)
     return accuracy(activated,Y,Ymean,Ystd)
 
-def SNRloop(testSet,levels,epochs,rows):
+def SNRloop(testSet,levels,epochs,rows,gen,FileName):
     R2List = []
     RMSEList = []
     for snr in levels:
-        X_train,X_test,Y_train,Y_test,Ymean,Ystd,X_eval,Y_eval,Xstd,Xmean = prepareData(rows,0,snr) #Trajectories,gen new data,SNR
+        X_train,X_test,Y_train,Y_test,Ymean,Ystd,X_eval,Y_eval,Xstd,Xmean = prepareData(rows,gen,snr,FileName) #Trajectories,gen new data,SNR
         weights,biases = trainLoop(X_train,Y_train,X_eval,Y_eval,Xstd,Xmean,epochs,1,100,snr)  #X,Y,X_val,Y_val,Xstd,Xmean,Epochs,Plots,Seed,snr
         __,activated = forward(X_eval,weights,biases)
 
@@ -207,10 +211,11 @@ def SNRloop(testSet,levels,epochs,rows):
         network["Xstd"] = Xstd
         network["Ymean"] = Ymean
         network["Ystd"] = Ystd
-        np.savez(os.path.join(DATA_DIR, f"Network SNR_{snr}"),**network)
-    np.savez(os.path.join(DATA_DIR, f"Network Results"),SNR = levels, R2 = R2List, RMSE = RMSEList)
+        np.savez(os.path.join(DATA_DIR, f"{FileName}_SNR_{snr}"),**network)
+        gen = 0
+    np.savez(os.path.join(DATA_DIR, f"{FileName}_Results"),SNR = levels, R2 = R2List, RMSE = RMSEList)
 
 
 if __name__ == "__main__":
 
-    SNRloop(1,["clean",100,10,5,2,1],1000,20000)
+    SNRloop(1,["clean",100,10,5,2,1],1000,20000,1,"ComparisonSet") #testSet,levels,epochs,rows,gen,FileName
