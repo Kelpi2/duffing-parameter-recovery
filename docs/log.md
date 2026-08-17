@@ -41,3 +41,16 @@ Fixed by creating new variables X_shuff,Y_shuff rather than manipulating origina
  08-08-26
  Smaller bugs: network file had a colon which is illegal on windows - replaced with _,when defining path for figures it shared them with data - changed var name
 SNRLoop collected R2 and RMSE per level which led to inconsitent saving in network data file, fixed by saving the runs in seperate data files
+
+13-08-26
+Split recoverparams so the snr loop and the actual parameter recovery are two different functions
+Decided on generating 2000 data points for each trajectory and passing it to AR and linear reg but keeping mlp at 604. This is due to the decimation whic would result in only 24 samples with 604 points, mlp wins eitherway.
+
+16-08-26
+Edited some pre-existing functions to work in experiments.py
+Decimation wasnt working in experiments due to the timesteps being off,fixed by multiply 0.063 by 25
+
+dataPrep was accidently re-assigning a new value to Y, so once it moved on to the next SNR level it got a "index 2 is out of bounds for axis 1 with size 2" error. Fixed by renaming the parameter to Truthlabel
+NanCounter wasnt working, it was checking for np.nan==np.nan which is against numpy rules, changed to np.isnan(alpha)
+
+Did a decimation sweep for linear reg as the noise multiplication due to passing variables through FDV() twice diminished results. Found that the values for optimal dec vary a lot per snr level, for example at snr 1 at dec 1(no decimation) recovered param are 104,0.03 as opposed to the true values of 1.25,0.3, at a dec of 10 it is 1.13,0.079. However the opposite is seen on the clean dataset where a dec of 1 gives 1.24,0.29 and 1.06,2.23 at dec 10. To fix this I ran the sweep and find the optimal dec for each snr level and got these results [1, 2, 6, 8, 9, 10]

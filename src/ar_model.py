@@ -16,24 +16,26 @@ def fit(disp,order,Maxp):
     AIC = len(y)*np.log(rss/len(y))+2*order
     return scalars,AIC
 
-def coefToParams(a1,a2,h):
+def coefToParams(a1,a2,h,printY):
     if a2>=0 or abs(a1/(2*np.sqrt(-a2)))>1: #check for invaldi values
-        print(np.nan)
+        if printY:
+            print(np.nan)
         return np.nan,np.nan
     gamma = -np.log(-a2)/h
     freq = (1/h)*np.arccos(a1/(2*np.sqrt(-a2)))
     alpha = freq**2 + (gamma**2)/4
-    print(f"a = {alpha}, y = {gamma}, freq = {freq}")
+    if printY:
+        print(f"a = {alpha}, y = {gamma}, freq = {freq}")
     return alpha,gamma
 
-def recoverParam(dec,filename):
+def recoverParam(dec,filename,printY):
     SNR = [100,10,5,2,1]
     for i in SNR:
             data = np.load(os.path.join(DATA_DIR, f"{filename}_SNR{i}.npz"))
             #(a1, a2), ___ = fit(data["CleanStates"][::dec,0], 2, 2)
             (a1, a2), ___ = fit(data["NoisyDis"][: :dec], 2, 2)
             h = data["timestep"]*dec
-            coefToParams(a1,a2,h)   
+            coefToParams(a1,a2,h,printY)   
 
 
 
@@ -81,5 +83,5 @@ def predict(steps,order,trainEnd,spacing):
 if __name__ == "__main__":
     boundary = {"gamma":0.5,"alpha":2,"beta":0,"F":0,"omega":1}
     generateDataset(126,0.063,boundary,[1,0])
-    recoverParam(25)
+    #recoverParam(25)
     

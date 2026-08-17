@@ -18,6 +18,14 @@ def normalEq(X,y):
     solutions = (np.linalg.inv((X.T@X)))@(X.T@y)*-1
     return solutions[0], solutions[1]
 
+def expLinearReg(displacement,dec):
+    h = 0.063*dec
+    vel = FDV(displacement,h)
+    disp = displacement[1:-1]
+    X,y = buildMatrices(disp,vel,h)
+    alpha,gamma = normalEq(X,y)
+    return alpha,gamma
+
 def linearReg(params,study):
     SNR = [100,10,5,2,1]
     studyA = []

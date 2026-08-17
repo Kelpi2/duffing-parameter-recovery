@@ -8,9 +8,9 @@ from generator import MLPdataset,addNoise
 np.random.seed(200)
 
 #dataset stuff
-def prepareData(num,generate,SNR,FileName):
+def prepareData(rows,generate,SNR,FileName):
     if generate:
-        (X,Y) = MLPdataset(num,126,FileName,(0.5,2), (0,0), (0.1,0.5), (0,0), (0,0)) #rows,length,FileName,alpha,beta,gamma,F,omega
+        (X,Y) = MLPdataset(rows,126,FileName,(0.5,2), (0,0), (0.1,0.5), (0,0), (0,0)) #rows,length,FileName,alpha,beta,gamma,F,omega
         X = X[:, :604]
         Y = Y[:, [0,2]] #change when changing ranges
     else:
@@ -19,8 +19,8 @@ def prepareData(num,generate,SNR,FileName):
         X = X[:, :604]
         Y = Y[:, [0,2]] #change when changing ranges
 
-    Tnum = int(num*0.6)
-    Vnum = int(num*0.2) + Tnum
+    Tnum = int(rows*0.6)
+    Vnum = int(rows*0.2) + Tnum
     X_clean = X[:Tnum]
 
     if SNR != "clean":
@@ -161,21 +161,24 @@ def trainLoop(X_clean,Y_train,X_eval,Y_eval,Xstd,Xmean,epochs,plot,seed,SNR):
 
     return minWeights,minBiases
 
-def accuracy(activated,Y,Ymean,Ystd):
-    pred = activated[-1]*Ystd+Ymean
+def accuracy(activated,Y,Ymean,Ystd,reg):
+    if not reg:
+        pred = activated[-1]*Ystd+Ymean
+    else:
+        pred = activated
     res = np.sum((pred-Y)**2,axis = 0)
     testMean = np.mean(Y, axis=0)
     tot = np.sum((Y - testMean)**2,axis=0)
-    params = 1-res/tot
-    print(params)
+    r2 = 1-res/tot
+    print(r2)
     RMSE = np.sqrt(np.mean((pred - Y)**2, axis=0))
     print(RMSE)
-    return params,RMSE
+    return r2,RMSE
 
 def test(X,Y,weights,biases,Ymean,Ystd):
     print("Test set")
     __,activated = forward(X,weights,biases)
-    return accuracy(activated,Y,Ymean,Ystd)
+    return accuracy(activated,Y,Ymean,Ystd,0)
 
 def SNRloop(testSet,levels,epochs,rows,gen,FileName):
     R2List = []
@@ -187,7 +190,7 @@ def SNRloop(testSet,levels,epochs,rows,gen,FileName):
 
         print(f"SNR: {snr}")
         print("Eval set")
-        accuracy(activated,(Y_eval*Ystd+Ymean),Ymean,Ystd)
+        accuracy(activated,(Y_eval*Ystd+Ymean),Ymean,Ystd,0)
         if testSet:
             R2,RMSE = test(X_test,Y_test,weights,biases,Ymean,Ystd)
             R2List.append(R2)
@@ -201,7 +204,7 @@ def SNRloop(testSet,levels,epochs,rows,gen,FileName):
                 X_train = addNoise(X_train,SD)
         
         __,activated = forward((X_train-Xmean)/Xstd,weights,biases)
-        accuracy(activated,(Y_train*Ystd+Ymean),Ymean,Ystd)
+        accuracy(activated,(Y_train*Ystd+Ymean),Ymean,Ystd,0)
         #save Weights and data
         network = {}
         for index,item in enumerate(weights):
@@ -215,7 +218,20 @@ def SNRloop(testSet,levels,epochs,rows,gen,FileName):
         gen = 0
     np.savez(os.path.join(DATA_DIR, f"{FileName}_Results"),SNR = levels, R2 = R2List, RMSE = RMSEList)
 
-
+def loader(NetworkName):
+    network = np.load(os.path.join(DATA_DIR, f"{NetworkName}.npz"))
+    layers = len([1 for w in network.files if w.startswith("w")])
+    weights = []
+    biases = []
+    for i in range(layers):
+        weights.append(network[f"w{i}"])
+        biases.append(network[f"b{i}"])
+    Xmean = network["Xmean"]
+    Xstd = network["Xstd"]
+    Ymean = network["Ymean"]
+    Ystd = network["Ystd"]
+    return weights,biases,Xmean,Xstd,Ymean,Ystd
+ 
 if __name__ == "__main__":
 
     SNRloop(1,["clean",100,10,5,2,1],1000,20000,1,"ComparisonSet") #testSet,levels,epochs,rows,gen,FileName
