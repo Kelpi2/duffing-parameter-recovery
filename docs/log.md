@@ -54,3 +54,5 @@ dataPrep was accidently re-assigning a new value to Y, so once it moved on to th
 NanCounter wasnt working, it was checking for np.nan==np.nan which is against numpy rules, changed to np.isnan(alpha)
 
 Did a decimation sweep for linear reg as the noise multiplication due to passing variables through FDV() twice diminished results. Found that the values for optimal dec vary a lot per snr level, for example at snr 1 at dec 1(no decimation) recovered param are 104,0.03 as opposed to the true values of 1.25,0.3, at a dec of 10 it is 1.13,0.079. However the opposite is seen on the clean dataset where a dec of 1 gives 1.24,0.29 and 1.06,2.23 at dec 10. To fix this I ran the sweep and find the optimal dec for each snr level and got these results [1, 2, 6, 8, 9, 10]
+
+Decided to do an individual decimation sweep for ar aswell, results: [1, 7, 20, 22, 26, 26]

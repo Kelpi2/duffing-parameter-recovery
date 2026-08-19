@@ -77,8 +77,41 @@ def DecSweep(dec,SNR,FileName):
         
     print(minDec)
 
+def ARDecSweep(dec,SNR,FileName):  
+    data = np.load(os.path.join(DATA_DIR, f"{FileName}.npz"))
+    (X,Y) = (data["trainSet"],data["TruthLabels"])
+    minDec = []
+    for snr in SNR:
+        print(f"__________________________________SNR {snr}__________________________________")
+        __,__,Xmean,Xstd,Ymean,Ystd = loader(f"{FileName}_SNR_{snr}")
+        X_REG,__,truthLabels = dataPrep(X,Y,snr,Xstd,Xmean)
+        R2 = []
+        r2Dec = []
+        for i in dec:
+            NanCount = 0
+            NanMask = []
+            ARresults = np.zeros((4000,2))
+            for row in range(4000):
+                (a1, a2), ___ = fit(X_REG[row,::i], 2, 2)  
+                alpha,gamma = coefToParams(a1,a2,0.063*i,0)   #a1,a2,h,printY
+                if np.isnan(alpha):
+                    NanMask.append(False)
+                    NanCount += 1
+                else:
+                    NanMask.append(True)
+                ARresults[row,0] = alpha
+                ARresults[row,1] = gamma
+            print(f"Dec: {i}")
+            if NanCount<=400:
+                r2,__ = accuracy(ARresults[NanMask],truthLabels[NanMask],Ymean,Ystd,1)
+                R2.append(r2[0])
+                r2Dec.append(i)
+
+        minDec.append(r2Dec[np.nanargmax(R2)])
+        
+    print(minDec)
 
 
 if __name__ == "__main__":
     #ExpLoop(["clean",100,10,5,2,1],"ComparisonSet")
-    DecSweep([x for x in range(1, 26)],["clean",100,10,5,2,1],"ComparisonSet")
+    ARDecSweep(range(1,40),["clean",100,10,5,2,1],"ComparisonSet")
