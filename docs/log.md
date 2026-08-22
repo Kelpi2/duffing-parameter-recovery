@@ -56,3 +56,15 @@ NanCounter wasnt working, it was checking for np.nan==np.nan which is against nu
 Did a decimation sweep for linear reg as the noise multiplication due to passing variables through FDV() twice diminished results. Found that the values for optimal dec vary a lot per snr level, for example at snr 1 at dec 1(no decimation) recovered param are 104,0.03 as opposed to the true values of 1.25,0.3, at a dec of 10 it is 1.13,0.079. However the opposite is seen on the clean dataset where a dec of 1 gives 1.24,0.29 and 1.06,2.23 at dec 10. To fix this I ran the sweep and find the optimal dec for each snr level and got these results [1, 2, 6, 8, 9, 10]
 
 Decided to do an individual decimation sweep for ar aswell, results: [1, 7, 20, 22, 26, 26]
+
+Found out that the 2000 trajectories actually degrade performance as most of the data is just noise especially at low snrs, for example at snr 1 it would only get 3 useful samples out of the 76 with a dec of 26
+
+New dec with 604 trajectories, linear:[1, 2, 5, 6, 8, 10]
+AR:[1-36, 4-32, 22, 22, 23, 28] 10% total NaN allowance
+
+AR has range as at snr clean and 100 the model predicts up to a level where differentiating of the results is almost or not possible
+(Cool thing to note: at no point did the optimal decimation levels for linear reg varied drastically)
+
+Decided to do dec sweeps per parameter
+Linear: alpha = [1, 2, 5, 6, 8, 10], gamma = [1, 1, 3, 3, 2, 2]
+AR: alpha = [1-36, 4-32, 22, 22, 23, 28], gamma = [1-36, 17, 23, 24, 23, 26]

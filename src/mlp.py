@@ -164,8 +164,11 @@ def trainLoop(X_clean,Y_train,X_eval,Y_eval,Xstd,Xmean,epochs,plot,seed,SNR):
 def accuracy(activated,Y,Ymean,Ystd,reg):
     if not reg:
         pred = activated[-1]*Ystd+Ymean
+        absMed = None
     else:
         pred = activated
+        absMed = np.median(np.abs(Y - pred), axis=0)
+
     res = np.sum((pred-Y)**2,axis = 0)
     testMean = np.mean(Y, axis=0)
     tot = np.sum((Y - testMean)**2,axis=0)
@@ -173,7 +176,7 @@ def accuracy(activated,Y,Ymean,Ystd,reg):
     print(r2)
     RMSE = np.sqrt(np.mean((pred - Y)**2, axis=0))
     print(RMSE)
-    return r2,RMSE
+    return r2,RMSE,absMed
 
 def test(X,Y,weights,biases,Ymean,Ystd):
     print("Test set")
